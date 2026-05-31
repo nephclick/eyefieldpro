@@ -8,8 +8,8 @@ import UploadEchoModal from "@/components/social/UploadEchoModal";
 import UploadPulseModal from "@/components/social/UploadPulseModal";
 import PulseViewer from "@/components/social/PulseViewer";
 import NotificationsSheet from "@/components/social/NotificationsSheet";
-import MapExplorer from "@/components/social/MapExplorer";
-import { Plus, Bell, RefreshCw, LogIn, Map, Search, Camera, MoreVertical, Trash2 } from "lucide-react";
+
+import { Plus, Bell, RefreshCw, LogIn, Search, Camera, MoreVertical, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -164,17 +164,6 @@ const Echo = () => {
                   <img src={aiRobot} alt="Endocard" className="w-6 h-6 object-contain" />
                   <span className="text-[10px] font-black uppercase tracking-wider">Endocard</span>
                 </Button>
-                <MapExplorer 
-                  trigger={
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-10 w-10 rounded-xl bg-white dark:bg-secondary border-gray-200 dark:border-none shadow-sm hover:bg-gray-50 transition-colors"
-                    >
-                      <Map size={20} className="text-muted-foreground" />
-                    </Button>
-                  }
-                />
                 <NotificationsSheet 
                   trigger={
                     <Button variant="ghost" size="icon" className="w-10 h-10 rounded-xl hover:bg-neutral-100 relative">
