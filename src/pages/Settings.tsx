@@ -5,7 +5,7 @@ import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { 
   User, Bell, Shield, Globe, Moon, LogOut, ChevronRight, 
-  HelpCircle, Smartphone, Eye, Lock, Trash2,
+  HelpCircle, Smartphone, Eye, Lock, Trash2, UserX,
   Sparkles, MessageSquare, Mail, Info, CheckCircle2, XCircle
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
@@ -130,10 +130,9 @@ const Settings = () => {
         { icon: User, label: "Edit Profile", action: () => navigate("/profile?edit=true") },
         { icon: Sparkles, label: "Subscription & Pricing", action: () => navigate("/pricing"), highlight: true },
         { 
-          icon: Bell, 
-          label: "Notifications", 
-          action: () => setActiveSheet("notifications"),
-          value: isSubscribed ? "Enabled" : "Disabled"
+          icon: UserX, 
+          label: "Account Deletion", 
+          action: () => navigate("/delete-account"),
         },
         { 
           icon: Shield, 
@@ -266,13 +265,6 @@ const Settings = () => {
             >
               <LogOut size={20} />
               Log Out
-            </Button>
-            <Button 
-              variant="ghost" 
-              className="w-full h-14 rounded-2xl text-muted-foreground hover:text-red-500 hover:bg-red-500/5 font-bold gap-3"
-            >
-              <Trash2 size={20} />
-              Delete Account
             </Button>
           </div>
         </div>

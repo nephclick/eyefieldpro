@@ -120,6 +120,7 @@ const OnboardingScreen = () => {
         .from('profiles')
         .upsert({
           id: authUser.id,
+          email: authUser.email || "",
           full_name: formData.fullName || null,
           username: formData.username || null,
           avatar_url: avatarUrl,

@@ -23,8 +23,8 @@ const ActiveCallOverlay = () => {
     const [isMinimized, setIsMinimized] = useState(false);
 
     useEffect(() => {
-        if (activeCall && activeCall.status === 'accepted' && user) {
-            getToken(activeCall.room_name, user.name).then(setToken);
+        if (activeCall && activeCall.call_status === 'accepted' && user) {
+            getToken(activeCall.channel_name, user.id).then(setToken);
             
             const otherId = activeCall.caller_id === user.id ? activeCall.receiver_id : activeCall.caller_id;
             supabase
@@ -36,7 +36,7 @@ const ActiveCallOverlay = () => {
         }
     }, [activeCall, user, getToken]);
 
-    if (!activeCall || activeCall.status !== 'accepted' || !token) return null;
+    if (!activeCall || activeCall.call_status !== 'accepted' || !token) return null;
 
     if (isMinimized) {
         return (
@@ -79,7 +79,7 @@ const ActiveCallOverlay = () => {
                 className="fixed inset-0 z-[120] bg-slate-950 flex flex-col items-center justify-center overflow-hidden"
             >
                 <LiveKitRoom
-                    video={activeCall.type === 'video'}
+                    video={activeCall.call_type === 'video'}
                     audio={true}
                     token={token}
                     serverUrl={import.meta.env.VITE_LIVEKIT_URL}
@@ -87,7 +87,7 @@ const ActiveCallOverlay = () => {
                     connect={true}
                     className="h-full w-full flex flex-col relative"
                 >
-                    {activeCall.type === 'video' ? (
+                    {activeCall.call_type === 'video' ? (
                         <VideoCallUI 
                             recipient={recipientProfile} 
                             onEnd={endCall} 

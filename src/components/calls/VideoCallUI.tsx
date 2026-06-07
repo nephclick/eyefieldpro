@@ -36,7 +36,7 @@ const VideoCallUI: React.FC<VideoCallUIProps> = ({ recipient, onEnd, onMinimize 
         [
             { source: Track.Source.Camera, withPlaceholder: false },
         ],
-        { onlySubscribed: true }
+        { onlySubscribed: false }
     );
 
     useEffect(() => {

@@ -28,6 +28,8 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Shop from "./pages/Shop";
 import Kope from "./pages/Kope";
 import Booking from "./pages/Booking";
+import AccountDeletion from "./pages/AccountDeletion";
+import Cascadea from "./pages/Cascadea";
 
 import { NotificationProvider } from "./context/NotificationProvider";
 import DataPrefetcher from "./components/DataPrefetcher";
@@ -63,6 +65,7 @@ const AppRoutes = () => {
       
       {/* Public Routes */}
       <Route path="/" element={<Index />} />
+      <Route path="/cascadea" element={<Cascadea />} />
       <Route path="/echo" element={<Echo />} />
       <Route path="/marketplace/:id" element={<ProductDetail />} />
       <Route path="/shop" element={<Shop />} />
@@ -84,6 +87,7 @@ const AppRoutes = () => {
       <Route path="/pricing" element={<ProtectedRoute><Pricing /></ProtectedRoute>} />
       <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
       <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+      <Route path="/delete-account" element={<ProtectedRoute><AccountDeletion /></ProtectedRoute>} />
     </Routes>
   );
 };

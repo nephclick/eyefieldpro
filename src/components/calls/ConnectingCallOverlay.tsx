@@ -14,7 +14,7 @@ const ConnectingCallOverlay = () => {
     const { user } = useUser();
     const [otherProfile, setOtherProfile] = useState<any>(null);
 
-    const call = incomingCall || (activeCall?.status === 'ringing' ? activeCall : null);
+    const call = incomingCall || (activeCall?.call_status === 'ringing' ? activeCall : null);
     const isIncoming = !!incomingCall;
 
     useEffect(() => {
@@ -94,7 +94,7 @@ const ConnectingCallOverlay = () => {
                             </motion.div>
 
                             <div className="absolute -top-2 -left-2 bg-accent p-3 rounded-full text-white shadow-lg z-30 border-4 border-slate-950">
-                                {call.type === 'video' ? <Video size={20} /> : <Phone size={20} />}
+                                {call.call_type === 'video' ? <Video size={20} /> : <Phone size={20} />}
                             </div>
                         </div>
 
@@ -105,8 +105,8 @@ const ConnectingCallOverlay = () => {
                             <div className="flex items-center justify-center gap-3 px-6 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
                                 <span className="text-xs font-bold uppercase tracking-[0.3em] text-primary animate-pulse">
                                     {isIncoming 
-                                        ? (call.type === 'video' ? 'Incoming Video Call' : 'Incoming Voice Call')
-                                        : (call.type === 'video' ? 'Calling (Video)...' : 'Calling (Voice)...')
+                                        ? (call.call_type === 'video' ? 'Incoming Video Call' : 'Incoming Voice Call')
+                                        : (call.call_type === 'video' ? 'Calling (Video)...' : 'Calling (Voice)...')
                                     }
                                 </span>
                                 {!isIncoming && <Loader2 size={14} className="animate-spin text-primary" />}

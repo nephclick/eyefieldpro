@@ -58,8 +58,8 @@ const Calls = () => {
           name: otherParticipant?.name || 'Unknown',
           avatar: otherParticipant?.avatar_url,
           type: isOutgoing ? 'outgoing' : 'incoming',
-          status: call.status,
-          isVideo: call.type === 'video',
+          status: call.call_status,
+          isVideo: call.call_type === 'video',
           created_at: call.created_at,
           time: new Date(call.created_at).toLocaleString([], { 
             hour: '2-digit', 

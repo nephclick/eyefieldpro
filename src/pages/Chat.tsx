@@ -38,7 +38,7 @@ const Chat = () => {
     startNewChat,
     handleStudioComplete,
     refreshMessages
-  } = useChat(user, selectedChat, setSelectedChat);
+  } = useChat(user, selectedChat, setSelectedChat, searchQuery);
 
   useEffect(() => {
     const startParamChat = async () => {

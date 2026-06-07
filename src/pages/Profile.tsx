@@ -221,6 +221,8 @@ const Profile = () => {
             } else if (typeof media === 'string') {
               imageUrls = [media.replace(/^["']|["']$/g, '')];
             }
+          } else if (p.media_url) {
+            imageUrls = [p.media_url];
           }
 
           const userHandle = targetUser?.handle?.startsWith('@') ? targetUser.handle : targetUser?.handle ? `@${targetUser.handle}` : 'user';
@@ -430,8 +432,9 @@ const Profile = () => {
             />
 
             <Tabs defaultValue="echoes" className="w-full" onValueChange={setActiveTab}>
-              <TabsList className="w-full bg-transparent border-b border-white/5 rounded-none h-12 p-0 gap-8">
-                <TabsTrigger value="echoes" className="data-[state=active]:text-accent data-[state=active]:border-b-2 data-[state=active]:border-accent rounded-none h-full px-2 font-bold text-sm">Echoes</TabsTrigger>
+              <TabsList className="w-full bg-transparent border-b border-white/5 rounded-none h-12 p-0 gap-8 overflow-x-auto">
+                <TabsTrigger value="echoes" className="data-[state=active]:text-accent data-[state=active]:border-b-2 data-[state=active]:border-accent rounded-none h-full px-2 font-bold text-sm">Posts</TabsTrigger>
+                <TabsTrigger value="pulses" className="data-[state=active]:text-accent data-[state=active]:border-b-2 data-[state=active]:border-accent rounded-none h-full px-2 font-bold text-sm">Pulses</TabsTrigger>
                 <TabsTrigger value="shop" className="data-[state=active]:text-accent data-[state=active]:border-b-2 data-[state=active]:border-accent rounded-none h-full px-2 font-bold text-sm">Shop</TabsTrigger>
                 {isOwnProfile && (
                   <TabsTrigger value="saved" className="data-[state=active]:text-accent data-[state=active]:border-b-2 data-[state=active]:border-accent rounded-none h-full px-2 font-bold text-sm">Saved</TabsTrigger>
@@ -445,7 +448,14 @@ const Profile = () => {
                       {...post} 
                       onDelete={() => fetchProfileData(true)} 
                     />
-                  )) : <p className="text-center text-muted-foreground py-12">No echoes yet.</p>}
+                  )) : <p className="text-center text-muted-foreground py-12">No posts yet.</p>}
+                </TabsContent>
+                <TabsContent value="pulses" className="m-0">
+                  <MediaTab 
+                    media={mediaItems} 
+                    isOwner={isOwnProfile} 
+                    onDelete={() => fetchProfileData(true)}
+                  />
                 </TabsContent>
                 <TabsContent value="shop" className="m-0">
                   <ShopTab 

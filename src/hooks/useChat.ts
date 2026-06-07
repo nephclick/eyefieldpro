@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { uploadMedia } from "@/utils/upload";
 import { toast } from "sonner";
 
-export const useChat = (user: any, selectedChat: any, setSelectedChat: (chat: any) => void) => {
+export const useChat = (user: any, selectedChat: any, setSelectedChat: (chat: any) => void, searchQuery: string = "") => {
   const [chats, setChats] = useState<any[]>([]);
   const [messagesCache, setMessagesCache] = useState<Record<string, any[]>>({});
   const [messages, setMessages] = useState<any[]>([]);
@@ -90,11 +90,17 @@ export const useChat = (user: any, selectedChat: any, setSelectedChat: (chat: an
   const fetchFollowers = useCallback(async () => {
     if (!user?.id) return;
     try {
-      const { data } = await supabase
+      let query = supabase
         .from('profiles')
         .select('id, name, full_name, username, avatar_url')
         .neq('id', user.id)
         .limit(50);
+      
+      if (searchQuery && searchQuery.trim() !== "") {
+        query = query.or(`name.ilike.%${searchQuery}%,username.ilike.%${searchQuery}%,full_name.ilike.%${searchQuery}%`);
+      }
+      
+      const { data } = await query;
       
       if (data) {
         setFollowers(data.map((p: any) => ({
@@ -107,7 +113,7 @@ export const useChat = (user: any, selectedChat: any, setSelectedChat: (chat: an
     } catch (err) {
       console.error("Error fetching followers:", err);
     }
-  }, [user?.id]);
+  }, [user?.id, searchQuery]);
 
   useEffect(() => {
     fetchChats();

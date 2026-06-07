@@ -7,9 +7,9 @@ interface Call {
   id: string;
   caller_id: string;
   receiver_id: string;
-  type: "voice" | "video";
-  status: "ringing" | "accepted" | "declined" | "missed" | "completed" | "busy";
-  room_name: string;
+  call_type: "voice" | "video";
+  call_status: "ringing" | "accepted" | "declined" | "missed" | "completed" | "busy";
+  channel_name: string;
 }
 
 interface CallContextType {
@@ -46,11 +46,11 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
         },
         async (payload) => {
           const newCall = payload.new as Call;
-          if (payload.eventType === 'INSERT' && newCall.status === 'ringing') {
+          if (payload.eventType === 'INSERT' && newCall.call_status === 'ringing') {
             setIncomingCall(newCall);
             setIsRinging(true);
           } else if (payload.eventType === 'UPDATE') {
-            if (['completed', 'declined', 'missed'].includes(newCall.status)) {
+            if (['completed', 'declined', 'missed'].includes(newCall.call_status)) {
               if (incomingCall?.id === newCall.id) {
                 setIncomingCall(null);
                 setIsRinging(false);
@@ -77,9 +77,9 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
         (payload) => {
           const updatedCall = payload.new as Call;
           if (activeCall?.id === updatedCall.id) {
-            if (updatedCall.status === 'accepted') {
+            if (updatedCall.call_status === 'accepted') {
               setActiveCall(updatedCall);
-            } else if (['completed', 'declined', 'busy', 'missed'].includes(updatedCall.status)) {
+            } else if (['completed', 'declined', 'busy', 'missed'].includes(updatedCall.call_status)) {
               setActiveCall(null);
             }
           }
@@ -120,9 +120,9 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .insert({
         caller_id: user.id,
         receiver_id: receiverId,
-        type,
-        status: 'ringing',
-        room_name: roomName,
+        call_type: type,
+        call_status: 'ringing',
+        channel_name: roomName,
       })
       .select()
       .single();
@@ -140,7 +140,7 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const { error } = await supabase
       .from('call_logs')
-      .update({ status: 'accepted', started_at: new Date().toISOString() })
+      .update({ call_status: 'accepted', started_at: new Date().toISOString() })
       .eq('id', incomingCall.id);
 
     if (error) {
@@ -148,7 +148,7 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
 
-    setActiveCall({ ...incomingCall, status: 'accepted' });
+    setActiveCall({ ...incomingCall, call_status: 'accepted' });
     setIncomingCall(null);
     setIsRinging(false);
   };
@@ -158,7 +158,7 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     await supabase
       .from('call_logs')
-      .update({ status: 'declined', ended_at: new Date().toISOString() })
+      .update({ call_status: 'declined', ended_at: new Date().toISOString() })
       .eq('id', incomingCall.id);
 
     setIncomingCall(null);
@@ -170,11 +170,11 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!callToEnd) return;
 
     // If the call was never accepted, mark it as missed
-    const finalStatus = callToEnd.status === 'ringing' ? 'missed' : 'completed';
+    const finalStatus = callToEnd.call_status === 'ringing' ? 'missed' : 'completed';
 
     await supabase
       .from('call_logs')
-      .update({ status: finalStatus, ended_at: new Date().toISOString() })
+      .update({ call_status: finalStatus, ended_at: new Date().toISOString() })
       .eq('id', callToEnd.id);
 
     setActiveCall(null);
