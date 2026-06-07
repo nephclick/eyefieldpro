@@ -150,9 +150,9 @@ const OnboardingScreen = () => {
 
       setIsOnboarded(true);
       navigate("/");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error completing onboarding:", error);
-      toast.error("Failed to save profile. Please try again.");
+      toast.error(`Failed to save profile: ${error.message || error.details || JSON.stringify(error)}`);
     } finally {
       setIsLoading(false);
     }
