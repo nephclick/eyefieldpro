@@ -32,6 +32,7 @@ const Sidebar = () => {
     { path: "/shop", icon: Tag, label: "Deals" },
     { path: "/echo", icon: Smile, label: t("nav.echo") },
     { path: "/chat", icon: MessageCircle, label: t("nav.chat") },
+    { path: "/calls", icon: Phone, label: "Calls" },
     { path: "/business", icon: Briefcase, label: "Business" },
     { path: "/contacts", icon: User, label: "Contacts" },
     { path: "/profile", icon: User, label: t("nav.profile") },

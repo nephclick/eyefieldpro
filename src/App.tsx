@@ -6,6 +6,7 @@ import { UserProvider, useUser } from "./context/UserContext";
 import { LanguageProvider } from "./context/LanguageContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import { CartProvider } from "./context/CartContext";
+import { CallProvider } from "./context/CallContext";
 import WelcomeToast from "./components/notifications/BeautifulToast";
 import Index from "./pages/Index";
 import Marketplace from "./pages/Marketplace";
@@ -30,6 +31,7 @@ import Kope from "./pages/Kope";
 import Booking from "./pages/Booking";
 import AccountDeletion from "./pages/AccountDeletion";
 import Cascadea from "./pages/Cascadea";
+import Calls from "./pages/Calls";
 
 import { NotificationProvider } from "./context/NotificationProvider";
 import DataPrefetcher from "./components/DataPrefetcher";
@@ -83,6 +85,7 @@ const AppRoutes = () => {
       <Route path="/endocard" element={<ProtectedRoute><Endocard /></ProtectedRoute>} />
       <Route path="/contacts" element={<ProtectedRoute><Contacts /></ProtectedRoute>} />
       <Route path="/business" element={<ProtectedRoute><Business /></ProtectedRoute>} />
+      <Route path="/calls" element={<ProtectedRoute><Calls /></ProtectedRoute>} />
       <Route path="/contact" element={<ProtectedRoute><Contact /></ProtectedRoute>} />
       <Route path="/pricing" element={<ProtectedRoute><Pricing /></ProtectedRoute>} />
       <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
@@ -97,19 +100,21 @@ const App = () => (
     <LanguageProvider>
       <ThemeProvider>
         <UserProvider>
-          <NotificationProvider>
-            <DataPrefetcher>
-              <CartProvider>
-                <TooltipProvider>
-                  <Toaster />
-                  <WelcomeToast />
-                  <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-                    <AppRoutes />
-                  </BrowserRouter>
-                </TooltipProvider>
-              </CartProvider>
-            </DataPrefetcher>
-          </NotificationProvider>
+          <CallProvider>
+            <NotificationProvider>
+              <DataPrefetcher>
+                <CartProvider>
+                  <TooltipProvider>
+                    <Toaster />
+                    <WelcomeToast />
+                    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                      <AppRoutes />
+                    </BrowserRouter>
+                  </TooltipProvider>
+                </CartProvider>
+              </DataPrefetcher>
+            </NotificationProvider>
+          </CallProvider>
         </UserProvider>
       </ThemeProvider>
     </LanguageProvider>

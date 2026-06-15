@@ -15,6 +15,7 @@ const BottomNav = () => {
     { path: "/echo", icon: Smile, label: t("nav.echo") },
     { path: "/chat", icon: MessageCircle, label: t("nav.chat") },
     { path: "/", icon: CascadeaRunningIcon, label: t("nav.home") },
+    { path: "/calls", icon: Phone, label: "Calls" },
     { path: "/business", icon: Briefcase, label: "Business" },
     { path: "/profile", icon: User, label: t("nav.profile") },
   ];

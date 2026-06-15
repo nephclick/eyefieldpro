@@ -5,7 +5,8 @@ import {
   MessageCircle,
   Phone,
   User,
-  Settings
+  Settings,
+  Briefcase
 } from "lucide-react";
 import CascadeaRunningIcon from "./CascadeaRunningIcon";
 
@@ -28,8 +29,12 @@ const Navigation = () => {
             <MessageCircle size={20} />
             <span>Chats</span>
           </Link>
-          <Link to="/business" className="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium hover:bg-accent/10">
+          <Link to="/calls" className="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium hover:bg-accent/10">
             <Phone size={20} />
+            <span>Calls</span>
+          </Link>
+          <Link to="/business" className="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium hover:bg-accent/10">
+            <Briefcase size={20} />
             <span>Business</span>
           </Link>
           <Link to="/profile" className="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium hover:bg-accent/10">
