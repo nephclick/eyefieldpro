@@ -48,7 +48,7 @@ const Chat = () => {
       if (userParam && user?.id) {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('id, name, full_name, avatar_url')
+          .select('id, username, full_name, avatar_url')
           .eq('id', userParam)
           .single();
         
@@ -66,7 +66,7 @@ const Chat = () => {
 
           await startNewChat({
              id: profile.id,
-             name: profile.name || profile.full_name || "User",
+             name: profile.full_name || profile.username || "User",
              avatar_url: parsedAvatar || ""
           });
           

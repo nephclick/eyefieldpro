@@ -45,17 +45,25 @@ const ShareProductModal: React.FC<ShareProductModalProps> = ({ isOpen, onClose, 
     try {
       let request = supabase
         .from('profiles')
-        .select('id, name, handle, avatar_url')
+        .select('id, username, full_name, avatar_url')
         .neq('id', user?.id)
         .limit(10);
 
       if (query) {
-        request = request.or(`name.ilike.%${query}%,handle.ilike.%${query}%`);
+        request = request.or(`username.ilike.%${query}%,full_name.ilike.%${query}%`);
       }
 
       const { data, error } = await request;
       if (error) throw error;
-      setUsers(data || []);
+      
+      const mapped = (data || []).map((p: any) => ({
+        id: p.id,
+        name: p.full_name || p.username || "User",
+        handle: p.username || "",
+        avatar_url: p.avatar_url
+      }));
+      
+      setUsers(mapped);
     } catch (error) {
       console.error("Error fetching users:", error);
     } finally {

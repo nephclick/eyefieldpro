@@ -41,11 +41,18 @@ const Contacts: React.FC = () => {
         const followingIds = follows.map(f => f.following_id);
         const { data: profiles, error: profilesError } = await supabase
           .from('profiles')
-          .select('id, name, handle, avatar_url')
+          .select('id, username, full_name, avatar_url')
           .in('id', followingIds);
 
         if (profilesError) throw profilesError;
-        setContacts(profiles || []);
+        
+        const mappedProfiles = (profiles || []).map((u: any) => ({
+          id: u.id,
+          name: u.full_name || u.username || "User",
+          handle: u.username || "",
+          avatar_url: u.avatar_url
+        }));
+        setContacts(mappedProfiles);
       } else {
         setContacts([]);
       }
@@ -115,8 +122,8 @@ const Contacts: React.FC = () => {
       setIsAdding(true);
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('id, handle')
-        .eq('handle', handle)
+        .select('id, username')
+        .eq('username', handle)
         .single();
 
       if (profileError || !profile) {
@@ -138,7 +145,7 @@ const Contacts: React.FC = () => {
 
       if (followError) throw followError;
 
-      toast.success(`Added @${profile.handle} to contacts`);
+      toast.success(`Added @${profile.username} to contacts`);
       setSearchQuery("");
       fetchContacts();
     } catch (error: any) {

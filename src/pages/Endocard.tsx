@@ -49,10 +49,19 @@ const Endocard = () => {
     try {
       const { data: profiles } = await supabase
         .from('profiles')
-        .select('id, name, handle, bio, business_category, avatar_url')
-        .or(`name.ilike.%${query}%,handle.ilike.%${query}%,business_category.ilike.%${query}%`)
+        .select('id, username, full_name, bio, avatar_url')
+        .or(`username.ilike.%${query}%,full_name.ilike.%${query}%`)
         .limit(3);
-      if (profiles) results.users = profiles;
+      if (profiles) {
+        results.users = profiles.map((p: any) => ({
+          id: p.id,
+          name: p.full_name || p.username || "User",
+          handle: p.username || "",
+          bio: p.bio,
+          business_category: "User",
+          avatar_url: p.avatar_url
+        }));
+      }
 
       const { data: products } = await supabase
         .from('products')

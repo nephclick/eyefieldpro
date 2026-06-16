@@ -30,15 +30,26 @@ const BlockedListDialog: React.FC<BlockedListDialogProps> = ({ trigger, currentU
           blocked_id,
           profiles:blocked_id (
             id,
-            name,
-            handle,
+            username,
+            full_name,
             avatar_url
           )
         `)
         .eq('blocker_id', currentUserId);
 
       if (error) throw error;
-      setBlockedUsers(data?.map(b => b.profiles) || []);
+      
+      const mappedBlocked = (data || []).map((b: any) => {
+        const p = b.profiles;
+        return p ? {
+          id: p.id,
+          name: p.full_name || p.username || "User",
+          handle: p.username || "",
+          avatar_url: p.avatar_url
+        } : null;
+      }).filter(Boolean);
+      
+      setBlockedUsers(mappedBlocked);
     } catch (error) {
       console.error("Error fetching blocked users:", error);
     } finally {
@@ -57,13 +68,21 @@ const BlockedListDialog: React.FC<BlockedListDialogProps> = ({ trigger, currentU
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, name, handle, avatar_url')
-        .or(`name.ilike.%${query}%,handle.ilike.%${query}%`)
+        .select('id, username, full_name, avatar_url')
+        .or(`username.ilike.%${query}%,full_name.ilike.%${query}%`)
         .neq('id', currentUserId)
         .limit(5);
 
       if (error) throw error;
-      setSearchResults(data || []);
+      
+      const mappedResults = (data || []).map((p: any) => ({
+        id: p.id,
+        name: p.full_name || p.username || "User",
+        handle: p.username || "",
+        avatar_url: p.avatar_url
+      }));
+      
+      setSearchResults(mappedResults);
     } catch (error) {
       console.error("Search error:", error);
     } finally {

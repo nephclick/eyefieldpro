@@ -42,22 +42,46 @@ const UserListDialog = ({
       if (type === 'all') {
         const { data: profiles } = await supabase
           .from('profiles')
-          .select('id, name, handle, avatar_url, business_category')
+          .select('id, username, full_name, avatar_url')
           .neq('id', currentUserId)
           .limit(100);
-        data = profiles || [];
+        data = (profiles || []).map((p: any) => ({
+          id: p.id,
+          name: p.full_name || p.username,
+          handle: p.username,
+          avatar_url: p.avatar_url,
+          business_category: "User"
+        }));
       } else if (type === 'followers') {
         const { data: followers } = await supabase
           .from('user_follows')
-          .select('follower:profiles!follows_follower_id_fkey(id, name, handle, avatar_url, business_category)')
+          .select('follower:profiles!follows_follower_id_fkey(id, username, full_name, avatar_url)')
           .eq('following_id', userId);
-        data = followers?.map((f: any) => f.follower) || [];
+        data = followers?.map((f: any) => {
+          const p = f.follower;
+          return p ? {
+            id: p.id,
+            name: p.full_name || p.username,
+            handle: p.username,
+            avatar_url: p.avatar_url,
+            business_category: "User"
+          } : null;
+        }).filter(Boolean) || [];
       } else if (type === 'following') {
         const { data: following } = await supabase
           .from('user_follows')
-          .select('following:profiles!follows_following_id_fkey(id, name, handle, avatar_url, business_category)')
+          .select('following:profiles!follows_following_id_fkey(id, username, full_name, avatar_url)')
           .eq('follower_id', userId);
-        data = following?.map((f: any) => f.following) || [];
+        data = following?.map((f: any) => {
+          const p = f.following;
+          return p ? {
+            id: p.id,
+            name: p.full_name || p.username,
+            handle: p.username,
+            avatar_url: p.avatar_url,
+            business_category: "User"
+          } : null;
+        }).filter(Boolean) || [];
       }
       
       setUsers(data);

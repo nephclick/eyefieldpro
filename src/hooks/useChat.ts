@@ -41,7 +41,7 @@ export const useChat = (user: any, selectedChat: any, setSelectedChat: (chat: an
           
           const { data: profile } = await supabase
             .from('profiles')
-            .select('id, name, full_name, avatar_url')
+            .select('id, username, full_name, avatar_url')
             .eq('id', otherUserId)
             .single();
 
@@ -65,7 +65,7 @@ export const useChat = (user: any, selectedChat: any, setSelectedChat: (chat: an
           return {
             id: room.id,
             otherUserId: profile?.id,
-            name: profile?.name || profile?.full_name || "User",
+            name: profile?.full_name || profile?.username || "User",
             avatar: parsedAvatar || "",
             lastMessage: lastMessageText,
             time: room.last_message_time ? new Date(room.last_message_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "",
@@ -92,12 +92,12 @@ export const useChat = (user: any, selectedChat: any, setSelectedChat: (chat: an
     try {
       let query = supabase
         .from('profiles')
-        .select('id, name, full_name, username, avatar_url')
+        .select('id, full_name, username, avatar_url')
         .neq('id', user.id)
         .limit(50);
       
       if (searchQuery && searchQuery.trim() !== "") {
-        query = query.or(`name.ilike.%${searchQuery}%,username.ilike.%${searchQuery}%,full_name.ilike.%${searchQuery}%`);
+        query = query.or(`username.ilike.%${searchQuery}%,full_name.ilike.%${searchQuery}%`);
       }
       
       const { data } = await query;
@@ -105,7 +105,7 @@ export const useChat = (user: any, selectedChat: any, setSelectedChat: (chat: an
       if (data) {
         setFollowers(data.map((p: any) => ({
           id: p.id,
-          name: p.name || p.full_name || p.username,
+          name: p.full_name || p.username,
           handle: p.username,
           avatar_url: p.avatar_url
         })));

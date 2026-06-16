@@ -39,12 +39,21 @@ const Contact = () => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, name, handle, avatar_url, bio')
+        .select('id, username, full_name, avatar_url, bio')
         .neq('id', currentUser?.id || '')
         .limit(4);
 
       if (error) throw error;
-      setSuggestedUsers(data || []);
+      
+      const mappedData = (data || []).map((u: any) => ({
+        id: u.id,
+        name: u.full_name || u.username || "User",
+        handle: u.username || "",
+        avatar_url: u.avatar_url,
+        bio: u.bio
+      }));
+      
+      setSuggestedUsers(mappedData);
     } catch (error) {
       console.error("Error fetching users:", error);
     } finally {
