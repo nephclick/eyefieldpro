@@ -98,14 +98,14 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return null;
 
-      const { data, error } = await supabase.functions.invoke('get-livekit-token', {
-        body: { roomName, participantName },
+      const { data, error } = await supabase.functions.invoke('get-agora-token', {
+        body: { channelName: roomName, userAccount: participantName },
       });
 
       if (error) throw error;
-      return data.token;
+      return { token: data.token, appId: data.appId };
     } catch (error: any) {
-      console.error("Error getting LiveKit token:", error);
+      console.error("Error getting Agora token:", error);
       return null;
     }
   };
