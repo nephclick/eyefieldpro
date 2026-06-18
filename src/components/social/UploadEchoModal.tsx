@@ -109,24 +109,24 @@ const UploadEchoModal: React.FC<UploadEchoModalProps> = ({ trigger }) => {
     setIsPosting(true);
     try {
       const uploadPromises = files.map(async (file) => {
+        let finalUrl = file.url;
         if (file.blob) {
-          return await uploadMedia(file.blob, 'posts', user.id);
+          finalUrl = await uploadMedia(file.blob, 'posts', user.id);
         }
-        return file.url;
+        return { url: finalUrl, type: file.type };
       });
 
-      const uploadedUrls = await Promise.all(uploadPromises);
+      const uploadedMedia = await Promise.all(uploadPromises);
+      const location = [city, country].filter(Boolean).join(', ') || null;
       
       const { error } = await supabase
         .from('posts')
         .insert({
           user_id: user.id,
-          type: 'echo',
           content: caption,
-          media_url: uploadedUrls.length > 0 ? uploadedUrls[0] : null,
+          media_urls: uploadedMedia.length > 0 ? uploadedMedia : null,
           link_url: linkUrl || null,
-          country: country || null,
-          city: city || null,
+          location: location,
         });
 
       if (error) throw error;
