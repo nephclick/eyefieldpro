@@ -55,7 +55,7 @@ const UserListDialog = ({
       } else if (type === 'followers') {
         const { data: followers } = await supabase
           .from('user_follows')
-          .select('follower:profiles!follows_follower_id_fkey(id, username, full_name, avatar_url)')
+          .select('follower:profiles!user_follows_follower_id_fkey(id, username, full_name, avatar_url)')
           .eq('following_id', userId);
         data = followers?.map((f: any) => {
           const p = f.follower;
@@ -70,7 +70,7 @@ const UserListDialog = ({
       } else if (type === 'following') {
         const { data: following } = await supabase
           .from('user_follows')
-          .select('following:profiles!follows_following_id_fkey(id, username, full_name, avatar_url)')
+          .select('following:profiles!user_follows_following_id_fkey(id, username, full_name, avatar_url)')
           .eq('follower_id', userId);
         data = following?.map((f: any) => {
           const p = f.following;

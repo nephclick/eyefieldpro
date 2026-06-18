@@ -136,7 +136,12 @@ const Chat = () => {
           message={message}
           setMessage={setMessage}
           onBack={() => setSelectedChat(null)}
-          onSend={() => handleSendMessage(message)}
+          onSend={() => {
+            if (message.trim()) {
+              handleSendMessage(message);
+              setMessage("");
+            }
+          }}
           onVoiceSend={handleVoiceSend}
           onDelete={handleDeleteMessage}
           onForward={handleForward}
