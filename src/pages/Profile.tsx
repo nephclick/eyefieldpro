@@ -357,7 +357,9 @@ const Profile = () => {
         });
       }
       
-      setUser({ ...editData, avatar: avatarUrl, banner: bannerUrl } as any);
+      const newUserData = { ...editData, avatar: avatarUrl, banner: bannerUrl };
+      setUser(newUserData as any);
+      setViewedUser((prev: any) => ({ ...prev, ...newUserData }));
       setIsEditing(false);
       showSuccess("Profile updated!");
     } catch (error) {

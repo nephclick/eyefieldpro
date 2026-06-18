@@ -116,46 +116,41 @@ const Contacts: React.FC = () => {
     }
   };
 
-  const handleAddContact = async () => {
-    const handle = searchQuery.trim().replace('@', '');
-    if (!handle) return;
+  const [searchResults, setSearchResults] = useState<Profile[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
-    try {
-      setIsAdding(true);
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('id, username')
-        .eq('username', handle)
-        .single();
-
-      if (profileError || !profile) {
-        toast.error("User not found");
+  useEffect(() => {
+    const searchDb = async () => {
+      if (searchQuery.trim().length < 2) {
+        setSearchResults([]);
         return;
       }
-
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      if (profile.id === user.id) {
-        toast.error("You cannot add yourself");
-        return;
+      setIsSearching(true);
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id, username, full_name, avatar_url')
+          .or(`username.ilike.%${searchQuery}%,full_name.ilike.%${searchQuery}%`)
+          .limit(20);
+        
+        if (!error && data) {
+          setSearchResults(data.map((u: any) => ({
+            id: u.id,
+            name: u.full_name || u.username || "User",
+            handle: u.username || "",
+            avatar_url: u.avatar_url
+          })));
+        }
+      } catch (err) {
+        console.error("Search error:", err);
+      } finally {
+        setIsSearching(false);
       }
+    };
 
-      const { error: followError } = await supabase
-        .from('user_follows')
-        .upsert({ follower_id: user.id, following_id: profile.id });
-
-      if (followError) throw followError;
-
-      toast.success(`Added @${profile.username} to contacts`);
-      setSearchQuery("");
-      fetchContacts();
-    } catch (error: any) {
-      toast.error("Failed to add contact");
-    } finally {
-      setIsAdding(false);
-    }
-  };
+    const debounce = setTimeout(searchDb, 300);
+    return () => clearTimeout(debounce);
+  }, [searchQuery]);
 
   return (
     <MainLayout>
@@ -168,36 +163,28 @@ const Contacts: React.FC = () => {
             </span>
           </div>
           
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
-              <Input
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by @handle..."
-                className="pl-10 h-12 rounded-2xl bg-secondary/30 border-white/5 focus:ring-accent"
-                onKeyDown={(e) => e.key === 'Enter' && handleAddContact()}
-              />
-            </div>
-            <Button 
-              onClick={handleAddContact}
-              disabled={isAdding || !searchQuery}
-              className="h-12 px-6 rounded-2xl bg-accent hover:bg-accent/90 text-white font-bold transition-all"
-            >
-              {isAdding ? <Loader2 className="animate-spin" size={20} /> : <UserPlus size={20} />}
-            </Button>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search users..."
+              className="pl-10 h-12 rounded-2xl bg-secondary/30 border-white/5 focus:ring-accent"
+            />
           </div>
         </header>
 
         <div className="space-y-4">
-          {loading ? (
+          {loading || isSearching ? (
             <div className="flex flex-col items-center justify-center py-20 gap-4">
               <Loader2 className="animate-spin text-accent" size={40} />
-              <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">Syncing Contacts...</p>
+              <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">
+                {isSearching ? "Searching..." : "Loading Contacts..."}
+              </p>
             </div>
-          ) : contacts.length > 0 ? (
+          ) : (searchQuery.length >= 2 ? searchResults : contacts).length > 0 ? (
             <div className="grid gap-3">
-              {contacts.map((contact) => (
+              {(searchQuery.length >= 2 ? searchResults : contacts).map((contact) => (
                 <div 
                   key={contact.id} 
                   className="group flex items-center justify-between p-4 rounded-[2rem] bg-secondary/20 border border-white/5 hover:bg-secondary/40 transition-all"
@@ -249,9 +236,11 @@ const Contacts: React.FC = () => {
                 <UserIcon size={32} />
               </div>
               <div className="space-y-2">
-                <p className="text-foreground font-black">No contacts yet</p>
+                <p className="text-foreground font-black">
+                  {searchQuery.length >= 2 ? "No users found" : "No contacts yet"}
+                </p>
                 <p className="text-xs text-muted-foreground max-w-[200px] mx-auto">
-                  Search for users by their handle to start a conversation
+                  Search for users to start a conversation
                 </p>
               </div>
             </div>
