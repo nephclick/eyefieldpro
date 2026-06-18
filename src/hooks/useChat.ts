@@ -292,7 +292,6 @@ export const useChat = (user: any, selectedChat: any, setSelectedChat: (chat: an
           room_id: selectedChat.id,
           sender_id: user.id,
           text: messageContent,
-          type,
           media_url: mediaUrl
         })
         .select()

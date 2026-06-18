@@ -42,13 +42,18 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
   onReaction,
   onImageClick
 }) => {
-  const isContact = type === 'contact';
-  
+  let isContact = type === 'contact';
   let contactData = null;
+
+  if (content && content.startsWith('{') && content.includes('"phone"') && content.includes('"name"')) {
+    isContact = true;
+  }
+
   if (isContact) {
     try {
       contactData = JSON.parse(content);
     } catch (e) {
+      isContact = false;
       console.error("Failed to parse contact data", e);
     }
   }
@@ -127,7 +132,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
                   <span className="text-[8px] font-black text-accent uppercase tracking-[0.2em]">Contact Shared</span>
                 </div>
               </div>
-            ) : type === 'image' && mediaUrl ? (
+            ) : mediaUrl ? (
               <div className="space-y-2">
                 <img 
                   src={mediaUrl} 

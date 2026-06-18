@@ -88,10 +88,9 @@ const ShareNumberDialog: React.FC<ShareNumberDialogProps> = ({ trigger }) => {
       };
 
       const { error: msgError } = await supabase.from('chat_messages').insert({
-        chat_id: chatId,
+        room_id: chatId,
         sender_id: user.id,
-        content: JSON.stringify(contactData),
-        type: 'contact'
+        text: JSON.stringify(contactData)
       });
 
       if (msgError) throw msgError;
