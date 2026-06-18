@@ -113,7 +113,7 @@ const ActiveCallOverlay = () => {
                     credentials.appId,
                     activeCall.channel_name,
                     credentials.token,
-                    user.id // use Supabase user.id UUID as userAccount (string)
+                    null // Let Agora generate a numeric uid
                 );
 
                 // 4. Create and publish local tracks

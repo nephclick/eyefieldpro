@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { useCalls } from "@/context/CallContext";
 
 interface Profile {
   id: string;
@@ -23,6 +24,7 @@ const Contacts: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
   const navigate = useNavigate();
+  const { startCall } = useCalls();
 
   const fetchContacts = async () => {
     try {
@@ -214,6 +216,7 @@ const Contacts: React.FC = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     <Button 
+                      onClick={() => startCall(contact.id, "voice")}
                       variant="ghost"
                       size="icon"
                       className="w-10 h-10 rounded-xl bg-accent/5 text-accent hover:bg-accent hover:text-white transition-all"
@@ -221,6 +224,7 @@ const Contacts: React.FC = () => {
                       <Phone size={18} />
                     </Button>
                     <Button 
+                      onClick={() => startCall(contact.id, "video")}
                       variant="ghost"
                       size="icon"
                       className="w-10 h-10 rounded-xl bg-accent/5 text-accent hover:bg-accent hover:text-white transition-all"

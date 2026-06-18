@@ -32,6 +32,8 @@ import Booking from "./pages/Booking";
 import AccountDeletion from "./pages/AccountDeletion";
 import Cascadea from "./pages/Cascadea";
 import Calls from "./pages/Calls";
+import ConnectingCallOverlay from "./components/calls/ConnectingCallOverlay";
+import ActiveCallOverlay from "./components/calls/ActiveCallOverlay";
 
 import { NotificationProvider } from "./context/NotificationProvider";
 import DataPrefetcher from "./components/DataPrefetcher";
@@ -107,6 +109,8 @@ const App = () => (
                   <TooltipProvider>
                     <Toaster />
                     <WelcomeToast />
+                    <ConnectingCallOverlay />
+                    <ActiveCallOverlay />
                     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                       <AppRoutes />
                     </BrowserRouter>

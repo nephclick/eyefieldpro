@@ -99,7 +99,7 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!session) return null;
 
       const { data, error } = await supabase.functions.invoke('get-agora-token', {
-        body: { channelName: roomName, userAccount: participantName },
+        body: { channelName: roomName, uid: 0, role: 'publisher' },
       });
 
       if (error) throw error;
@@ -133,6 +133,26 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     setActiveCall(newCall as Call);
+
+    // Trigger push notification to wake up receiver's device (FCM / APNs)
+    supabase.functions.invoke('send-call-notification', {
+      body: {
+        receiverId: receiverId,
+        callerId: user.id,
+        callerName: user.name || "User",
+        roomName: roomName,
+        isVideoCall: type === 'video',
+        callLogId: newCall.id,
+      }
+    }).then(({ data, error: fnError }) => {
+      if (fnError) {
+        console.error("Failed to send call notification:", fnError);
+      } else {
+        console.log("Call wake-up notification sent successfully:", data);
+      }
+    }).catch(err => {
+      console.error("Error invoking send-call-notification edge function:", err);
+    });
   };
 
   const acceptCall = async () => {
