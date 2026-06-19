@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { supabase } from "@/lib/supabase";
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { useUser } from "./UserContext";
 import { toast } from "sonner";
 
@@ -20,7 +20,7 @@ interface CallContextType {
   acceptCall: () => Promise<void>;
   declineCall: () => Promise<void>;
   endCall: () => Promise<void>;
-  getToken: (roomName: string, participantName: string) => Promise<string | null>;
+  getToken: (roomName: string, participantName: string) => Promise<{ token: string; appId: string } | null>;
 }
 
 const CallContext = createContext<CallContextType | undefined>(undefined);
@@ -31,11 +31,18 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [incomingCall, setIncomingCall] = useState<Call | null>(null);
   const [isRinging, setIsRinging] = useState(false);
 
+  // Use refs to access latest call state inside realtime callbacks (avoids stale closure)
+  const incomingCallRef = useRef<Call | null>(null);
+  const activeCallRef = useRef<Call | null>(null);
+
+  useEffect(() => { incomingCallRef.current = incomingCall; }, [incomingCall]);
+  useEffect(() => { activeCallRef.current = activeCall; }, [activeCall]);
+
   useEffect(() => {
     if (!user?.id) return;
 
     const receiverChannel = supabase
-      .channel('incoming-calls')
+      .channel(`incoming-calls-${user.id}`)
       .on(
         'postgres_changes',
         {
@@ -51,12 +58,19 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setIsRinging(true);
           } else if (payload.eventType === 'UPDATE') {
             if (['completed', 'declined', 'missed'].includes(newCall.call_status)) {
-              if (incomingCall?.id === newCall.id) {
+              if (incomingCallRef.current?.id === newCall.id) {
                 setIncomingCall(null);
                 setIsRinging(false);
               }
-              if (activeCall?.id === newCall.id) {
+              if (activeCallRef.current?.id === newCall.id) {
                 setActiveCall(null);
+              }
+            } else if (newCall.call_status === 'accepted') {
+              // Receiver's own UPDATE when they accept — ensure activeCall is set
+              if (incomingCallRef.current?.id === newCall.id) {
+                setActiveCall(newCall);
+                setIncomingCall(null);
+                setIsRinging(false);
               }
             }
           }
@@ -65,7 +79,7 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .subscribe();
 
     const callerChannel = supabase
-      .channel('outgoing-calls')
+      .channel(`outgoing-calls-${user.id}`)
       .on(
         'postgres_changes',
         {
@@ -76,7 +90,7 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
         },
         (payload) => {
           const updatedCall = payload.new as Call;
-          if (activeCall?.id === updatedCall.id) {
+          if (activeCallRef.current?.id === updatedCall.id || !activeCallRef.current) {
             if (updatedCall.call_status === 'accepted') {
               setActiveCall(updatedCall);
             } else if (['completed', 'declined', 'busy', 'missed'].includes(updatedCall.call_status)) {
@@ -91,15 +105,17 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
       supabase.removeChannel(receiverChannel);
       supabase.removeChannel(callerChannel);
     };
-  }, [user?.id, incomingCall?.id, activeCall?.id]);
+  // Only re-subscribe when the user changes, NOT on every call state change
+  }, [user?.id]);
 
   const getToken = async (roomName: string, participantName: string) => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return null;
 
+      // Edge function requires 'channelName' and 'userAccount' (not uid)
       const { data, error } = await supabase.functions.invoke('get-agora-token', {
-        body: { channelName: roomName, uid: 0, role: 'publisher' },
+        body: { channelName: roomName, userAccount: participantName },
       });
 
       if (error) throw error;

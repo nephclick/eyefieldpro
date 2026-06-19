@@ -33,7 +33,7 @@ const ShareNumberDialog: React.FC<ShareNumberDialogProps> = ({ trigger }) => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, name, handle, avatar_url, phone, address_city, country')
+        .select('id, name:full_name, handle:username, avatar_url, phone, address_city, country')
         .neq('id', user?.id)
         .limit(20);
 

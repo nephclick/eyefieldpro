@@ -5,7 +5,7 @@ import AgoraRTC, { IAgoraRTCClient, ICameraVideoTrack, IMicrophoneAudioTrack, IR
 import { motion, AnimatePresence } from "framer-motion";
 import { useCalls } from "@/context/CallContext";
 import { useUser } from "@/context/UserContext";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { PhoneOff, Mic, MicOff, Video, VideoOff, Minimize2, Maximize2 } from "lucide-react";

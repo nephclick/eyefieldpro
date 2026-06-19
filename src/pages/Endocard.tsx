@@ -72,7 +72,7 @@ const Endocard = () => {
 
       const { data: posts } = await supabase
         .from('posts')
-        .select('id, content, type, created_at')
+        .select('id, content, created_at')
         .ilike('content', `%${query}%`)
         .limit(3);
       if (posts) results.posts = posts;

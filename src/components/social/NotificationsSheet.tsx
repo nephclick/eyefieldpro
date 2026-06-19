@@ -39,74 +39,124 @@ const NotificationsSheet = ({ trigger }: { trigger: React.ReactNode }) => {
     setLoading(true);
 
     try {
-      // Fetch Pulse Reactions
-      const { data: pulseReactions } = await supabase
-        .from('pulse_likes')
-        .select('*, pulses!inner(user_id), profiles:user_id(name, handle, avatar_url)')
-        .eq('pulses.user_id', currentUser.id);
+      // Fetch Pulse Reactions safely
+      let pulseReactions: any[] = [];
+      try {
+        const { data } = await supabase
+          .from('pulse_likes')
+          .select('*, pulses!inner(user_id), profiles:user_id(full_name, username, avatar_url)')
+          .eq('pulses.user_id', currentUser.id);
+        pulseReactions = data || [];
+      } catch (e) {
+        console.error("Error fetching pulse reactions:", e);
+      }
 
-      // Fetch Pulse Comments
-      const { data: pulseComments } = await supabase
-        .from('pulse_comments')
-        .select('*, pulses!inner(user_id), profiles:user_id(name, handle, avatar_url)')
-        .eq('pulses.user_id', currentUser.id);
+      // Fetch Pulse Comments safely (this table might not exist)
+      let pulseComments: any[] = [];
+      try {
+        const { data } = await supabase
+          .from('pulse_comments')
+          .select('*, pulses!inner(user_id), profiles:user_id(full_name, username, avatar_url)')
+          .eq('pulses.user_id', currentUser.id);
+        pulseComments = data || [];
+      } catch (e) {
+        console.warn("Pulse comments table not found or query failed:", e);
+      }
 
-      // Fetch Post Reactions
-      const { data: postReactions } = await supabase
-        .from('post_emojis')
-        .select('*, posts!inner(user_id), profiles:user_id(name, handle, avatar_url)')
-        .eq('posts.user_id', currentUser.id);
+      // Fetch Post Reactions safely
+      let postReactions: any[] = [];
+      try {
+        const { data } = await supabase
+          .from('post_emojis')
+          .select('*, posts!inner(user_id), profiles:user_id(full_name, username, avatar_url)')
+          .eq('posts.user_id', currentUser.id);
+        postReactions = data || [];
+      } catch (e) {
+        console.error("Error fetching post reactions:", e);
+      }
 
-      // Fetch Post Comments
-      const { data: postComments } = await supabase
-        .from('post_comments')
-        .select('*, posts!inner(user_id), profiles:user_id(name, handle, avatar_url)')
-        .eq('posts.user_id', currentUser.id);
+      // Fetch Post Comments safely
+      let postComments: any[] = [];
+      try {
+        const { data } = await supabase
+          .from('post_comments')
+          .select('*, posts!inner(user_id), profiles:user_id(full_name, username, avatar_url)')
+          .eq('posts.user_id', currentUser.id);
+        postComments = data || [];
+      } catch (e) {
+        console.error("Error fetching post comments:", e);
+      }
 
-      // Fetch Likes
-      const { data: likes } = await supabase
-        .from('post_applause')
-        .select('*, posts!inner(user_id), profiles:user_id(name, handle, avatar_url)')
-        .eq('posts.user_id', currentUser.id);
+      // Fetch Likes safely
+      let likes: any[] = [];
+      try {
+        const { data } = await supabase
+          .from('post_applause')
+          .select('*, posts!inner(user_id), profiles:user_id(full_name, username, avatar_url)')
+          .eq('posts.user_id', currentUser.id);
+        likes = data || [];
+      } catch (e) {
+        console.error("Error fetching likes:", e);
+      }
 
       const allNotifications: Notification[] = [
-        ...(pulseReactions || []).map(r => ({
+        ...pulseReactions.map(r => ({
           id: r.id,
           type: 'reaction' as const,
           source: 'pulse' as const,
-          user: { name: r.profiles.name, handle: r.profiles.handle, avatar: r.profiles.avatar_url },
+          user: { 
+            name: r.profiles?.full_name || "User", 
+            handle: r.profiles?.username || "user", 
+            avatar: r.profiles?.avatar_url || "" 
+          },
           emoji: r.emoji,
           created_at: r.created_at
         })),
-        ...(pulseComments || []).map(c => ({
+        ...pulseComments.map(c => ({
           id: c.id,
           type: 'comment' as const,
           source: 'pulse' as const,
-          user: { name: c.profiles.name, handle: c.profiles.handle, avatar: c.profiles.avatar_url },
-          content: c.content,
+          user: { 
+            name: c.profiles?.full_name || "User", 
+            handle: c.profiles?.username || "user", 
+            avatar: c.profiles?.avatar_url || "" 
+          },
+          content: c.text || c.content,
           created_at: c.created_at
         })),
-        ...(postReactions || []).map(r => ({
+        ...postReactions.map(r => ({
           id: r.id,
           type: 'reaction' as const,
           source: 'echo' as const,
-          user: { name: r.profiles.name, handle: r.profiles.handle, avatar: r.profiles.avatar_url },
+          user: { 
+            name: r.profiles?.full_name || "User", 
+            handle: r.profiles?.username || "user", 
+            avatar: r.profiles?.avatar_url || "" 
+          },
           emoji: r.emoji,
           created_at: r.created_at
         })),
-        ...(postComments || []).map(c => ({
+        ...postComments.map(c => ({
           id: c.id,
           type: 'comment' as const,
           source: 'echo' as const,
-          user: { name: c.profiles.name, handle: c.profiles.handle, avatar: c.profiles.avatar_url },
-          content: c.content,
+          user: { 
+            name: c.profiles?.full_name || "User", 
+            handle: c.profiles?.username || "user", 
+            avatar: c.profiles?.avatar_url || "" 
+          },
+          content: c.text,
           created_at: c.created_at
         })),
-        ...(likes || []).map(l => ({
+        ...likes.map(l => ({
           id: l.id,
           type: 'like' as const,
           source: 'echo' as const,
-          user: { name: l.profiles.name, handle: l.profiles.handle, avatar: l.profiles.avatar_url },
+          user: { 
+            name: l.profiles?.full_name || "User", 
+            handle: l.profiles?.username || "user", 
+            avatar: l.profiles?.avatar_url || "" 
+          },
           created_at: l.created_at
         }))
       ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());

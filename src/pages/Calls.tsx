@@ -41,8 +41,8 @@ const Calls = () => {
       .from('call_logs')
       .select(`
         *,
-        caller:profiles!calls_caller_id_fkey(id, name, avatar_url),
-        receiver:profiles!calls_receiver_id_fkey(id, name, avatar_url)
+        caller:profiles!calls_caller_id_fkey(id, name:full_name, avatar_url),
+        receiver:profiles!calls_receiver_id_fkey(id, name:full_name, avatar_url)
       `)
       .or(`caller_id.eq.${user.id},receiver_id.eq.${user.id}`)
       .order('created_at', { ascending: false });

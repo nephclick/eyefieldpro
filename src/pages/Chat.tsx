@@ -35,6 +35,7 @@ const Chat = () => {
     handleSendMessage,
     handleVoiceSend,
     handleDeleteMessage,
+    handleReaction: sendReaction,
     startNewChat,
     handleStudioComplete,
     refreshMessages
@@ -110,6 +111,7 @@ const Chat = () => {
   };
 
   const handleReaction = (id: string, emoji: string) => {
+    sendReaction(id, emoji);
     toast.info(`Reacted with ${emoji}`);
   };
 

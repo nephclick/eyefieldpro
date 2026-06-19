@@ -25,8 +25,13 @@ serve(async (req) => {
       });
     }
 
-    const { channelName, userAccount, isVideoCall } = await req.json();
-    console.log("[get-agora-token] Generating token for channel:", channelName, "userAccount:", userAccount);
+    // Accept both 'userAccount' (new) and legacy 'uid' param from older callers
+    const body = await req.json();
+    const channelName: string = body.channelName ?? '';
+    const userAccount: string | undefined = body.userAccount;
+    const uidRaw: number | undefined = typeof body.uid === 'number' ? body.uid : undefined;
+
+    console.log("[get-agora-token] channelName:", channelName, "userAccount:", userAccount, "uid:", uidRaw);
 
     const appId = Deno.env.get('AGORA_APP_ID');
     const appCertificate = Deno.env.get('AGORA_APP_CERTIFICATE');
@@ -39,14 +44,14 @@ serve(async (req) => {
       );
     }
 
-    if (!channelName || !userAccount) {
+    if (!channelName) {
       return new Response(
-        JSON.stringify({ error: 'channelName and userAccount are required' }),
+        JSON.stringify({ error: 'channelName is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Agora role: Publisher (1) or Subscriber (2)
+    // Agora role: Publisher
     const role = RtcRole.PUBLISHER;
     
     // Token expiration: 24 hours
@@ -54,17 +59,32 @@ serve(async (req) => {
     const currentTimestamp = Math.floor(Date.now() / 1000);
     const privilegeExpiredTs = currentTimestamp + expirationTimeInSeconds;
 
-    // Build token using user account (string UUID from Supabase)
-    const token = RtcTokenBuilder.buildTokenWithUserAccount(
-      appId,
-      appCertificate,
-      channelName,
-      userAccount,
-      role,
-      privilegeExpiredTs
-    );
+    let token: string;
 
-    console.log("[get-agora-token] Token generated successfully");
+    if (userAccount && userAccount.trim().length > 0) {
+      // Preferred: build token with a string user account (Supabase UUID)
+      token = RtcTokenBuilder.buildTokenWithUserAccount(
+        appId,
+        appCertificate,
+        channelName,
+        userAccount,
+        role,
+        privilegeExpiredTs
+      );
+      console.log("[get-agora-token] Token generated with userAccount:", userAccount);
+    } else {
+      // Legacy fallback: build token with numeric uid
+      const uid = uidRaw ?? 0;
+      token = RtcTokenBuilder.buildTokenWithUid(
+        appId,
+        appCertificate,
+        channelName,
+        uid,
+        role,
+        privilegeExpiredTs
+      );
+      console.log("[get-agora-token] Token generated with uid:", uid);
+    }
 
     return new Response(
       JSON.stringify({ token, appId }),

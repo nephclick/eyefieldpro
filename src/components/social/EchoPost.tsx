@@ -69,10 +69,23 @@ const EchoPost: React.FC<EchoPostProps> = ({ id, ownerId, user, content, images 
     try {
       const { data, count } = await supabase
         .from('post_comments')
-        .select('id, content, created_at, user_id, profiles(name, handle, avatar_url)', { count: 'exact' })
+        .select('id, text, created_at, user_id, profiles(full_name, username, avatar_url)', { count: 'exact' })
         .eq('post_id', id)
         .order('created_at', { ascending: false });
-      setComments(data || []);
+
+      const formattedComments = (data || []).map((c: any) => ({
+        id: c.id,
+        content: c.text,
+        created_at: c.created_at,
+        user_id: c.user_id,
+        profiles: {
+          name: c.profiles?.full_name || "User",
+          handle: c.profiles?.username || "user",
+          avatar_url: c.profiles?.avatar_url || ""
+        }
+      }));
+
+      setComments(formattedComments);
       if (count !== null) setReplies(count);
     } finally {
       setIsLoadingComments(false);
@@ -123,7 +136,7 @@ const EchoPost: React.FC<EchoPostProps> = ({ id, ownerId, user, content, images 
     if (!currentUser || !comment.trim()) return;
     setIsCommenting(true);
     try {
-      const { error } = await supabase.from('post_comments').insert({ post_id: id, user_id: currentUser.id, content: comment });
+      const { error } = await supabase.from('post_comments').insert({ post_id: id, user_id: currentUser.id, text: comment });
       if (!error) { setComment(""); await fetchComments(); toast.success("Comment posted!"); }
     } finally { setIsCommenting(false); }
   };

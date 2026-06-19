@@ -17,8 +17,7 @@ const DataPrefetcher: React.FC<{ children: React.ReactNode }> = ({ children }) =
         queryFn: async () => {
           const { data } = await supabase
             .from('posts')
-            .select('*, profiles(name, handle, avatar_url)')
-            .eq('type', 'echo')
+            .select('*, profiles(full_name, username, avatar_url)')
             .order('created_at', { ascending: false });
           return data;
         },
@@ -30,7 +29,7 @@ const DataPrefetcher: React.FC<{ children: React.ReactNode }> = ({ children }) =
         queryFn: async () => {
           const { data } = await supabase
             .from('pulses')
-            .select('*, profiles:user_id(name, handle, avatar_url)')
+            .select('*, profiles:user_id(full_name, username, avatar_url)')
             .gt('expires_at', new Date().toISOString())
             .order('created_at', { ascending: true });
           return data;
@@ -43,8 +42,8 @@ const DataPrefetcher: React.FC<{ children: React.ReactNode }> = ({ children }) =
         queryFn: async () => {
           const { data } = await supabase
             .from('chat_rooms')
-            .select('chat_id, chats(*)')
-            .eq('user_id', user.id);
+            .select('*')
+            .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
           return data;
         },
       });
@@ -57,8 +56,8 @@ const DataPrefetcher: React.FC<{ children: React.ReactNode }> = ({ children }) =
             .from('call_logs')
             .select(`
               *,
-              caller:profiles!calls_caller_id_fkey(id, name, avatar_url),
-              receiver:profiles!calls_receiver_id_fkey(id, name, avatar_url)
+              caller:profiles!calls_caller_id_fkey(id, name:full_name, avatar_url),
+              receiver:profiles!calls_receiver_id_fkey(id, name:full_name, avatar_url)
             `)
             .or(`caller_id.eq.${user.id},receiver_id.eq.${user.id}`)
             .order('created_at', { ascending: false });
