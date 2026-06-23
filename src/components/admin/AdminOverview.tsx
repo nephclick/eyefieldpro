@@ -3,15 +3,17 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { CheckCircle2 } from "lucide-react";
+import PlatformPayments from "./PlatformPayments";
 
 interface AdminOverviewProps {
   userCount: number;
   activePromos: number;
   verifiedCount: number;
   callLogs: any[];
+  userEmail: string;
 }
 
-const AdminOverview: React.FC<AdminOverviewProps> = ({ userCount, activePromos, verifiedCount, callLogs }) => {
+const AdminOverview: React.FC<AdminOverviewProps> = ({ userCount, activePromos, verifiedCount, callLogs, userEmail }) => {
   const totalCallSeconds = callLogs?.reduce((acc, call) => {
     if (call.started_at && call.ended_at) {
       const start = new Date(call.started_at).getTime();
@@ -70,6 +72,8 @@ const AdminOverview: React.FC<AdminOverviewProps> = ({ userCount, activePromos, 
           </CardContent>
         </Card>
       </div>
+
+      <PlatformPayments userEmail={userEmail} />
 
       <Card className="bg-secondary/20 border-white/5 rounded-[2.5rem]">
         <CardHeader>
