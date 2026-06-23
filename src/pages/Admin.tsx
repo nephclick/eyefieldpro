@@ -22,17 +22,20 @@ const Admin = () => {
   const { user, isLoading: userLoading } = useUser();
   const [users, setUsers] = useState<any[]>([]);
   const [promotions, setPromotions] = useState<any[]>([]);
+  const [callLogs, setCallLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [usersRes, promosRes] = await Promise.all([
+      const [usersRes, promosRes, callsRes] = await Promise.all([
         supabase.from('profiles').select('*').order('created_at', { ascending: false }),
-        supabase.from('promotional_cards').select('*').order('created_at', { ascending: false })
+        supabase.from('promotional_cards').select('*').order('created_at', { ascending: false }),
+        supabase.from('call_logs').select('*').eq('call_status', 'completed')
       ]);
       if (usersRes.data) setUsers(usersRes.data);
       if (promosRes.data) setPromotions(promosRes.data);
+      if (callsRes.data) setCallLogs(callsRes.data);
     } finally {
       setLoading(false);
     }
@@ -87,6 +90,7 @@ const Admin = () => {
               userCount={users.length} 
               activePromos={promotions.filter(p => p.is_active).length} 
               verifiedCount={users.filter(u => u.is_verified).length} 
+              callLogs={callLogs}
             />
           </TabsContent>
 

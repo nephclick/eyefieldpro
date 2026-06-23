@@ -69,12 +69,10 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           <>
             {isAdmin && (
               <Button 
-                variant="outline" 
-                size="icon" 
-                className="rounded-full border-accent/20 text-accent hover:bg-accent/10"
+                className="rounded-full bg-accent hover:bg-accent/90 text-white font-bold px-6 border-none"
                 onClick={() => navigate("/admin")}
               >
-                <LayoutDashboard size={18} />
+                <LayoutDashboard size={18} className="mr-2" /> Admin Dashboard
               </Button>
             )}
             <Button variant="outline" size="icon" className="rounded-full border-white/10 hover:bg-white/5" onClick={() => navigate("/settings")}>

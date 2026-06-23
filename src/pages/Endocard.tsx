@@ -102,48 +102,63 @@ const Endocard = () => {
 
     try {
       const contextData = await searchAppData(content);
-      const { data, error } = await supabase.functions.invoke('chat-ai', {
-        body: {
-          message: content,
-          context: {
-            appStructure: {
-              pages: ["Market", "Social", "Profile", "Admin", "Settings"],
-              features: ["Product Listing", "User Search", "Direct Messaging", "Voice/Video Calls"]
-            },
-            searchResults: contextData,
-            userProfile: user
-          },
-          systemPrompt: `You are Endocard, the official AI assistant for this web application. 
-          Your goal is to help users navigate the app and find content.
-          
-          KNOWLEDGE BASE:
-          - Users can find products in the 'Market' section.
-          - Users can see what others are posting in the 'Social' feed.
-          - Users can manage their business in the 'Profile' settings.
-          
-          CAPABILITIES:
-          - If a user asks for a person or business, use the provided search results to show them. 
-          - Format user mentions as: [Name](@handle) or provide a direct link to their profile: /profile/[id].
-          - If a product is not found, suggest similar ones from the search results.
-          - You can guide users by describing the UI: "Click the bag icon in the bottom navigation to open the Market."
-          
-          PRIVACY RULES:
-          - NEVER reveal private phone numbers or private messages.
-          - Only share information that is marked as public in the database.
-          
-          RESPONSE STYLE:
-          - Be helpful, professional, and concise.
-          - Use Markdown for formatting.
-          - Always provide direct links to profiles or products when mentioned.`
-        }
-      });
+      const systemPrompt = `You are Endocard, the official AI assistant for this web application. 
+      Your goal is to help users navigate the app and find content.
+      Context data: ${JSON.stringify(contextData)}`;
 
-      if (error) throw error;
+      const OPENROUTER_KEY = import.meta.env.VITE_OPENROUTER_KEY || "";
+      const GEMINI_KEY = import.meta.env.VITE_GEMINI_KEY || "";
+      let aiResponse = "";
+      
+      try {
+        const orRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${OPENROUTER_KEY}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: "openrouter/free",
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: content }
+            ]
+          })
+        });
+        const orData = await orRes.json();
+        const reply = orData.choices?.[0]?.message?.content;
+        if (reply && !reply.toLowerCase().includes("error")) {
+          aiResponse = reply;
+        }
+      } catch (e) {
+        console.error("OpenRouter failed", e);
+      }
+      
+      if (!aiResponse) {
+        try {
+          const gemRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: systemPrompt + "\n\nUser: " + content }] }]
+            })
+          });
+          const gemData = await gemRes.json();
+          const reply = gemData.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (reply) aiResponse = reply;
+        } catch (e) {
+          console.error("Gemini failed", e);
+        }
+      }
+      
+      if (!aiResponse) {
+        aiResponse = "I am unable to respond at this time.";
+      }
 
       const botMessage = {
         id: (Date.now() + 1).toString(),
         sender_id: ENDOCARD_BOT_ID,
-        content: data.reply,
+        content: aiResponse,
         created_at: new Date().toISOString(),
         type: "text"
       };

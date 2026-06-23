@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect, useCallback } from "react";
+import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import ProductCard from "@/components/shop/ProductCard";
 import UploadModal from "@/components/shop/UploadModal";
@@ -72,6 +72,86 @@ const Marketplace = () => {
     const max = Math.max(...products.map(p => p.price * currency.rate));
     return Math.ceil(max / 100) * 100 || 1000;
   }, [products, currency]);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isVisualSearching, setIsVisualSearching] = useState(false);
+
+  const handleVisualSearch = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsVisualSearching(true);
+    setSearchQuery("");
+    try {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = async () => {
+        const base64Data = reader.result as string;
+        const base64Image = base64Data.split(',')[1];
+        
+        const OPENROUTER_KEY = import.meta.env.VITE_OPENROUTER_KEY || "";
+        const GEMINI_KEY = import.meta.env.VITE_GEMINI_KEY || "";
+        let aiResponse = "";
+        
+        try {
+          const orRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${OPENROUTER_KEY}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              model: "openrouter/free",
+              messages: [{
+                role: "user",
+                content: [
+                  { type: "text", text: "Describe what object is mainly in this image in one or two words. Return only the object name." },
+                  { type: "image_url", image_url: { url: `data:image/jpeg;base64,${base64Image}` } }
+                ]
+              }]
+            })
+          });
+          const orData = await orRes.json();
+          const reply = orData.choices?.[0]?.message?.content;
+          if (reply && !reply.toLowerCase().includes("error") && !reply.toLowerCase().includes("cannot")) {
+            aiResponse = reply.trim();
+          }
+        } catch (e) {
+          console.error("OpenRouter failed", e);
+        }
+        
+        if (!aiResponse) {
+          try {
+            const gemRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                contents: [{ parts: [
+                  { text: "Describe what object is mainly in this image in one or two words. Return only the object name." },
+                  { inlineData: { mimeType: file.type || "image/jpeg", data: base64Image } }
+                ] }]
+              })
+            });
+            const gemData = await gemRes.json();
+            const reply = gemData.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (reply) aiResponse = reply.trim();
+          } catch (e) {
+            console.error("Gemini failed", e);
+          }
+        }
+        
+        if (aiResponse) {
+          setSearchQuery(aiResponse);
+        } else {
+          toast.error("Visual search failed.");
+        }
+        setIsVisualSearching(false);
+      };
+    } catch (e) {
+      setIsVisualSearching(false);
+      toast.error("Error processing image");
+    }
+  };
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -200,7 +280,19 @@ const Marketplace = () => {
             className="pl-6 pr-24 h-14 rounded-[2rem] bg-secondary/20 border border-white/10 focus-visible:ring-accent text-foreground text-sm w-full"
           />
           <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-3">
-            <Camera className="text-muted-foreground cursor-pointer hover:text-accent" size={20} />
+            <input 
+              type="file" 
+              accept="image/*" 
+              capture="environment" 
+              className="hidden" 
+              ref={fileInputRef}
+              onChange={handleVisualSearch}
+            />
+            {isVisualSearching ? (
+              <Loader2 className="text-accent animate-spin" size={20} />
+            ) : (
+              <Camera className="text-muted-foreground cursor-pointer hover:text-accent" size={20} onClick={() => fileInputRef.current?.click()} />
+            )}
             <Popover>
               <PopoverTrigger asChild>
                 <SlidersHorizontal className="text-muted-foreground cursor-pointer hover:text-accent" size={20} />

@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Search, ShieldCheck, XCircle, UserX, Loader2 } from "lucide-react";
+import { Search, ShieldCheck, XCircle, UserX, Loader2, Ban, PlayCircle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
@@ -33,6 +33,22 @@ const UserManagement: React.FC<UserManagementProps> = ({ users, loading, onRefre
     }
   };
 
+  const toggleSuspend = async (userId: string, currentStatus: string) => {
+    const newStatus = currentStatus === 'suspended' ? 'active' : 'suspended';
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ status: newStatus })
+        .eq('id', userId);
+
+      if (error) throw error;
+      toast.success(`User ${newStatus === 'suspended' ? 'suspended' : 'unsuspended'} successfully`);
+      onRefresh();
+    } catch (error) {
+      toast.error("Failed to update user status.");
+    }
+  };
+
   const deleteUser = async (userId: string) => {
     if (!confirm("Are you sure you want to delete this user? This will remove their profile and content.")) return;
     try {
@@ -46,8 +62,8 @@ const UserManagement: React.FC<UserManagementProps> = ({ users, loading, onRefre
   };
 
   const filteredUsers = users.filter(u => 
-    u.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    u.handle?.toLowerCase().includes(searchQuery.toLowerCase())
+    (u.full_name || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
+    (u.username || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -74,14 +90,15 @@ const UserManagement: React.FC<UserManagementProps> = ({ users, loading, onRefre
                 <div className="flex items-center gap-4">
                   <Avatar className="w-14 h-14 border-2 border-accent/10">
                     <AvatarImage src={u.avatar_url} />
-                    <AvatarFallback>{u.name?.[0] || "U"}</AvatarFallback>
+                    <AvatarFallback>{u.full_name?.[0] || "U"}</AvatarFallback>
                   </Avatar>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h3 className="font-black text-lg">{u.name}</h3>
+                      <h3 className="font-black text-lg">{u.full_name || 'User'}</h3>
                       {u.is_verified && <ShieldCheck size={18} className="text-accent" />}
+                      {u.status === 'suspended' && <span className="text-xs bg-red-500/20 text-red-500 px-2 py-0.5 rounded-full font-bold">Suspended</span>}
                     </div>
-                    <p className="text-sm text-muted-foreground">@{u.handle}</p>
+                    <p className="text-sm text-muted-foreground">@{u.username}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -93,6 +110,15 @@ const UserManagement: React.FC<UserManagementProps> = ({ users, loading, onRefre
                   >
                     {u.is_verified ? <XCircle size={16} className="mr-2" /> : <ShieldCheck size={16} className="mr-2" />}
                     {u.is_verified ? 'Unverify' : 'Verify'}
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => toggleSuspend(u.id, u.status)}
+                    className={`rounded-xl font-bold ${u.status === 'suspended' ? 'text-green-500 border-green-500/20 hover:bg-green-500/10' : 'text-orange-500 border-orange-500/20 hover:bg-orange-500/10'}`}
+                  >
+                    {u.status === 'suspended' ? <PlayCircle size={16} className="mr-2" /> : <Ban size={16} className="mr-2" />}
+                    {u.status === 'suspended' ? 'Unsuspend' : 'Suspend'}
                   </Button>
                   <button 
                     onClick={() => deleteUser(u.id)}
