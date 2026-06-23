@@ -16,7 +16,7 @@ import AiConfiguration from "@/components/admin/AiConfiguration";
 import ReportManagement from "@/components/admin/ReportManagement";
 import { ShieldAlert } from "lucide-react";
 
-const ADMIN_EMAIL = "nephclick@gmail.com";
+const ADMIN_EMAILS = ["nephclick@gmail.com", "eyefieldholybusiness@gmail.com"];
 
 const Admin = () => {
   const { user, isLoading: userLoading } = useUser();
@@ -39,7 +39,7 @@ const Admin = () => {
   };
 
   useEffect(() => {
-    if (user?.email === ADMIN_EMAIL) fetchData();
+    if (user?.email && ADMIN_EMAILS.includes(user.email)) fetchData();
   }, [user]);
 
   if (userLoading) return (
@@ -48,7 +48,7 @@ const Admin = () => {
     </div>
   );
 
-  if (user?.email !== ADMIN_EMAIL) return <Navigate to="/" />;
+  if (!user?.email || !ADMIN_EMAILS.includes(user.email)) return <Navigate to="/" />;
 
   return (
     <MainLayout>

@@ -19,7 +19,7 @@ import MediaStudio from "@/components/media/MediaStudio";
 import { uploadMedia } from "@/utils/upload";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 
-const ADMIN_EMAIL = "nephclick@gmail.com";
+const ADMIN_EMAILS = ["nephclick@gmail.com", "eyefieldholybusiness@gmail.com"];
 
 const COUNTRIES = [
   { name: "United States", code: "+1" },
@@ -403,7 +403,7 @@ const Profile = () => {
         isOwnProfile={isOwnProfile}
         isEditing={isEditing}
         isFollowing={isFollowing}
-        isAdmin={currentUser?.email === ADMIN_EMAIL}
+        isAdmin={currentUser?.email ? ADMIN_EMAILS.includes(currentUser.email) : false}
         onEditClick={() => setIsEditing(true)}
         onFollowToggle={() => handleFollowToggle(viewedUser.id, isFollowing)}
         onMediaSelect={handleMediaSelect}
