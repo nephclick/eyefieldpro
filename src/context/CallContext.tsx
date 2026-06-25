@@ -41,6 +41,24 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     if (!user?.id) return;
 
+    // Polling fallback for incoming calls
+    const pollInterval = setInterval(async () => {
+      if (incomingCallRef.current || activeCallRef.current) return;
+      const { data, error } = await supabase
+        .from('call_logs')
+        .select('*')
+        .eq('receiver_id', user.id)
+        .eq('call_status', 'ringing')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+        
+      if (data && !error) {
+        setIncomingCall(data as Call);
+        setIsRinging(true);
+      }
+    }, 3000);
+
     const receiverChannel = supabase
       .channel(`incoming-calls-${user.id}`)
       .on(
@@ -102,6 +120,7 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .subscribe();
 
     return () => {
+      clearInterval(pollInterval);
       supabase.removeChannel(receiverChannel);
       supabase.removeChannel(callerChannel);
     };
